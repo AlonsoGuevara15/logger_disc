@@ -9,6 +9,7 @@ async def build_welcome_image(member):
         data = json.load(json_file)
 
     print(data)
+    
 
     filename = member.display_name + str(member.id) + '.webp'
 
