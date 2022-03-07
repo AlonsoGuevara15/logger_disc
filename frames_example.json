@@ -1,0 +1,75 @@
+{
+  "name": {
+    "x": [
+      344,
+      935
+    ],
+    "y": [
+      261,
+      375
+    ],
+    "padding": 30,
+    "colors": [
+      {
+        "rgb": [
+          162,
+          44,
+          184
+        ],
+        "x_offset": 1,
+        "z_index": 0,
+        "border": {
+          "stroke_width": 1,
+          "stroke_fill": [
+            253,
+            36,
+            124
+          ]
+        }
+      },
+      {
+        "rgb": [
+          67,
+          220,
+          254
+        ],
+        "x_offset": -1,
+        "z_index": 1,
+        "border": {
+          "stroke_width": 1,
+          "stroke_fill": [
+            253,
+            36,
+            124
+          ]
+        }
+      },
+      {
+        "rgb": [
+          58,
+          57,
+          55
+        ],
+        "x_offset": 0,
+        "z_index": 2,
+        "border": {
+          "stroke_width": 1,
+          "stroke_fill": [
+            253,
+            36,
+            124
+          ]
+        }
+      }
+    ]
+  },
+  "photo": {
+    "side_size": 255,
+    "padding": 10,
+    "gaussian_blur_radius": 3,
+    "tl_corner": [
+      511,
+      3
+    ]
+  }
+}
