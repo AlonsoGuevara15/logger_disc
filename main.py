@@ -171,6 +171,7 @@ async def cast(ctx, arg):
 
 if os.getenv('DEPLOY', None):
     from keep_alive import keep_alive
+
     keep_alive()
 
 client.run(os.getenv('TOKEN'))
