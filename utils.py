@@ -1,27 +1,34 @@
 import discord
 import os
-from build_image import build_welcome_image
+import json
+from build_image import build_welcome_image, temp_dir
 from init_data import get_server_data
+
+event_files_dir = "event_files/"
 
 
 class BotUtils:
     def __init__(self, client):
         self.copa_channels, self.staff_roles, self.team_roles, self.copa_server = get_server_data(client)
+        with open(event_files_dir + 'utils_data.json') as json_file:
+            data = json.load(json_file)
+            self.filenames = data.get("filenames")
+            self.welcome_message_text = data.get("welcome_message_text")
 
     async def send_welcome_message(self, member, cast=False):
         filename = await build_welcome_image(member)
-        welcome_message = "Bienvenid@ {} a la :bat: **Copa Telecom 2021 - Edición Bicentenario** :flag_pe:. Recuerda leerte las {} antes de empezar, es muy importante. Diviertete! :cowboy:".format(
-            member.mention,
-            self.copa_channels.get('rules').mention)
+        welcome_message = self.welcome_message_text.format(
+            user_mention=member.mention,
+            rules_mention=self.copa_channels.get('rules').mention)
 
         if cast:
             await self.copa_channels.get('welcome').send(
-                welcome_message, file=discord.File('temp/edited_' + filename))
+                welcome_message, file=discord.File(temp_dir + 'edited_' + filename))
 
         await member.send(welcome_message,
-                          file=discord.File('temp/edited_' + filename))
-        for f in os.listdir('temp'):
-            os.remove(os.path.join('temp', f))
+                          file=discord.File(temp_dir + 'edited_' + filename))
+        for f in os.listdir(temp_dir):
+            os.remove(os.path.join(temp_dir, f))
 
     async def send_team_embed(self, member, role_data):
         embed = discord.Embed(colour=discord.Colour(role_data.get('colour')), description="Bienvenid@ a **{}**!".format(
@@ -36,6 +43,12 @@ class BotUtils:
         await channel.send(embed=embed)
         await member.send(embed=embed)
 
+    async def send_rules(self, channel_name=''):
+        channel = self.copa_channels.get(channel_name)
+        await channel.send(embed=discord.Embed(colour=discord.Colour(0x607D8B), title="BASES DE LOS EVENTOS"))
+        await channel.send(file=discord.File(
+            event_files_dir + self.filenames.get("rules")))
+
     async def send_horario(self, channel_name='', tag_everyone=False):
         embed = discord.Embed(colour=discord.Colour(0x607D8B),
                               title="HORARIO DE EVENTOS")
@@ -46,7 +59,7 @@ class BotUtils:
             await channel.send("@everyone", embed=embed)
         else:
             await channel.send(embed=embed)
-        await channel.send(file=discord.File("event_files/horario_copa.jpg"))
+        await channel.send(file=discord.File(event_files_dir + self.filenames.get("horario")))
 
     async def send_role_indication(self, channel_name='', tag_everyone=False):
         embed = discord.Embed(
@@ -78,4 +91,4 @@ class BotUtils:
         if tag_everyone:
             await channel.send("@everyone")
         await channel.send(embed=discord.Embed(colour=discord.Colour(0x607D8B), title="EXCEL DE RETOS"))
-        await channel.send(file=discord.File("event_files/Retos_Copa_Telecom_Bicentenario.xlsx"))
+        await channel.send(file=discord.File(event_files_dir + self.filenames.get("retos")))

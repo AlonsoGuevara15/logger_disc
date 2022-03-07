@@ -1,47 +1,95 @@
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+import os
 import json
+
+welcome_dir = 'welcome_image/'
+base_img_filename = 'base_img.jpeg'
+mask_circle_filename = 'mask_circle.jpg'
+temp_dir = 'temp/'
 
 
 async def build_welcome_image(member):
     # Opening JSON file
-    with open('welcome_image/frames.json') as json_file:
+    with open(welcome_dir + 'frames.json') as json_file:
         data = json.load(json_file)
 
-    print(data)
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
 
     filename = member.display_name + str(member.id) + '.webp'
 
-    await member.avatar_url.save('temp/' + filename)
-    bg_img = Image.open('welcome_image/base_img.jpeg').copy()
-    resize_size = (340, 340)
-    avatar_img = Image.open('temp/' + filename).resize(resize_size)
+    await member.avatar_url.save(temp_dir + filename)
 
-    # mask_im = Image.new("L", resize_size, 0)
-    # draw = ImageDraw.Draw(mask_im)
-    # draw.ellipse(((20, 20),(320,320)), fill=255)
-    # mask_im.save('mask_circle.jpg', quality=100)
-    mask_im = Image.open('welcome_image/mask_circle.jpg')
+    square_size, ellipse, tl_corner_photo = process_json_data(data, data_type='photo')
 
-    bg_img.paste(avatar_img, (420, 40),
-                 mask_im.filter(ImageFilter.GaussianBlur(5)))
+    bg_img = Image.open(welcome_dir + base_img_filename).copy()
+    resize_size = square_size
+    avatar_img = Image.open(temp_dir + filename).resize(resize_size)
+
+    full_mask_circle_filename = welcome_dir + mask_circle_filename
+    if not os.path.exists(full_mask_circle_filename):
+        mask_im = Image.new("L", resize_size, 0)
+        draw = ImageDraw.Draw(mask_im)
+        draw.ellipse((ellipse[0], ellipse[1]),
+                     fill=255)
+        mask_im.save(full_mask_circle_filename, quality=100)
+
+    mask_im = Image.open(full_mask_circle_filename)
+
+    bg_img.paste(avatar_img, tl_corner_photo, mask_im.filter(ImageFilter.GaussianBlur(5)))
     draw = ImageDraw.Draw(bg_img)
+
+    max_size, sum_borders, rgb_name, border = process_json_data(data, data_type='name')
 
     fontsize = 20
     # font = ImageFont.truetype(<font-file>, <font-size>)
-    font = ImageFont.truetype("welcome_image/BlackOpsOne-Regular.ttf",
-                              fontsize)
+    font_filename = None
+    for file in os.listdir(welcome_dir):
+        if file.endswith(".ttf"):
+            font_filename = file
+            break
+    full_font_filename = welcome_dir + font_filename
+
+    font = ImageFont.truetype(full_font_filename, fontsize)
     fullname = '@' + member.name.upper()
-    while font.getsize(fullname)[0] < 769 and font.getsize(fullname)[1] < 94:
+    bounds = font.getbbox(fullname)  # (left, top, right, bottom)
+    while bounds[2] - bounds[0] < max_size.get("x") and bounds[3] - bounds[1] < max_size.get("y"):
         # iterate until the text size is just larger than the criteria
         fontsize += 1
-        font = ImageFont.truetype("welcome_image/BlackOpsOne-Regular.ttf",
+        font = ImageFont.truetype(full_font_filename,
                                   fontsize)
-    xtext, ytext = font.getsize(fullname)
-    xbg_img, ybg_img = bg_img.size
-    # draw.text((x, y),"Sample Text",(r,g,b))
-    draw.text(((226 * 2 + 780 - xtext) / 2, (373 * 2 + 90 - ytext) / 2),
-              fullname, (31, 47, 81),
-              font=font)
+        bounds = font.getbbox(fullname)
+    font = ImageFont.truetype(full_font_filename, fontsize - 1)
 
-    bg_img.save('temp/edited_' + filename)
+    (xtext, ytext) = (bounds[2] - bounds[0], bounds[3] - bounds[1])
+
+    # draw.text((x, y),"Sample Text",(r,g,b))
+    if border:
+        draw.text(((sum_borders.get("x") - xtext) / 2, (sum_borders.get("y") - ytext) / 2), fullname, rgb_name, font=font, anchor="lt", **border)
+    else:
+        draw.text(((sum_borders.get("x") - xtext) / 2, (sum_borders.get("y") - ytext) / 2), fullname, rgb_name, font=font, anchor="lt")
+
+    bg_img.save(temp_dir + 'edited_' + filename)
     return filename
+
+
+def process_json_data(data, data_type=''):
+    if data_type == 'photo':
+        photo_measures = data.get("photo")
+        square_size = (photo_measures.get("side_size"),) * 2
+        ellipse = [(photo_measures.get("padding"),) * 2,
+                   (photo_measures.get("side_size") - photo_measures.get("padding"),) * 2]
+        tl_corner = tuple(photo_measures.get("tl_corner"))
+        return square_size, ellipse, tl_corner
+    elif data_type == 'name':
+        name_measures = data.get("name")
+        sum_borders = {}
+        max_size = {}
+        for axis in ["x", "y"]:
+            sum_borders.update({axis: name_measures.get(axis)[1] + name_measures.get(axis)[0]})
+            max_size.update({axis: name_measures.get(axis)[1] - name_measures.get(axis)[0] - name_measures.get("padding")})
+        rgb_name = tuple(name_measures.get("rgb"))
+        border = name_measures.get("border", None)
+
+        return max_size, sum_borders, rgb_name, border
+    return None

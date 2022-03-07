@@ -104,10 +104,7 @@ async def update_info(ctx, arg):
         ind_channel = bot_utils.copa_channels.get('rules')
         await ind_channel.purge(limit=5)
 
-        await ind_channel.send(embed=discord.Embed(
-            colour=discord.Colour(0x607D8B), title="BASES DE LOS EVENTOS"))
-        await ind_channel.send(file=discord.File(
-            "event_files/Copa Telecom 2021 - Edición Bicentenario Bases.pdf"))
+        await bot_utils.send_rules(channel_name='rules')
 
         await bot_utils.send_horario(channel_name='rules')
         await bot_utils.send_role_indication(channel_name='rules')

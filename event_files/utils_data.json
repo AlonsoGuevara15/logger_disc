@@ -1,0 +1,8 @@
+{
+  "filenames": {
+    "rules": "Copa Telecom 2021 - Edicion Bicentenario Bases.pdf",
+    "retos": "Retos_Copa_Telecom_Bicentenario.xlsx",
+    "horario": "horario_copa.jpg"
+  },
+  "welcome_message_text": "Bienvenid@ {user_mention} a la :bat: **Copa Telecom 2021 - Edición Bicentenario** :flag_pe:. Recuerda leerte las {rules_mention} antes de empezar, es muy importante. Diviertete! :cowboy:"
+}

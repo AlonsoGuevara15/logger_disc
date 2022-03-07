@@ -8,12 +8,20 @@
       373,
       477
     ],
-    "padding": 36,
+    "padding": 5,
     "rgb": [
       31,
       47,
       81
-    ]
+    ],
+    "border": {
+      "stroke_width": 10,
+      "stroke_fill": [
+        31,
+        47,
+        81
+      ]
+    }
   },
   "photo": {
     "side_size": 340,
