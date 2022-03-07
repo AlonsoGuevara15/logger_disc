@@ -3,7 +3,7 @@ import os
 import json
 
 welcome_dir = 'welcome_image/'
-base_img_filename = 'base_img.jpeg'
+base_img_filename = 'base_img.png'
 mask_circle_filename = 'mask_circle.jpg'
 temp_dir = 'temp/'
 
@@ -20,14 +20,14 @@ async def build_welcome_image(member):
 
     await member.avatar_url.save(temp_dir + filename)
 
-    square_size, ellipse, tl_corner_photo = process_json_data(data, data_type='photo')
+    square_size, ellipse, tl_corner_photo, gaussian_blur_radius = process_json_data(data, data_type='photo')
 
     bg_img = Image.open(welcome_dir + base_img_filename).copy()
     resize_size = square_size
     avatar_img = Image.open(temp_dir + filename).resize(resize_size)
 
     full_mask_circle_filename = welcome_dir + mask_circle_filename
-    if not os.path.exists(full_mask_circle_filename):
+    if not os.path.exists(full_mask_circle_filename) or not os.getenv('DEPLOY', None):
         mask_im = Image.new("L", resize_size, 0)
         draw = ImageDraw.Draw(mask_im)
         draw.ellipse((ellipse[0], ellipse[1]),
@@ -36,7 +36,7 @@ async def build_welcome_image(member):
 
     mask_im = Image.open(full_mask_circle_filename)
 
-    bg_img.paste(avatar_img, tl_corner_photo, mask_im.filter(ImageFilter.GaussianBlur(5)))
+    bg_img.paste(avatar_img, tl_corner_photo, mask_im.filter(ImageFilter.GaussianBlur(gaussian_blur_radius)))
     draw = ImageDraw.Draw(bg_img)
 
     max_size, sum_borders, rgb_name, border = process_json_data(data, data_type='name')
@@ -45,7 +45,7 @@ async def build_welcome_image(member):
     # font = ImageFont.truetype(<font-file>, <font-size>)
     font_filename = None
     for file in os.listdir(welcome_dir):
-        if file.endswith(".ttf"):
+        if file.endswith(".ttf") or file.endswith(".otf"):
             font_filename = file
             break
     full_font_filename = welcome_dir + font_filename
@@ -64,11 +64,7 @@ async def build_welcome_image(member):
     (xtext, ytext) = (bounds[2] - bounds[0], bounds[3] - bounds[1])
 
     # draw.text((x, y),"Sample Text",(r,g,b))
-    if border:
-        draw.text(((sum_borders.get("x") - xtext) / 2, (sum_borders.get("y") - ytext) / 2), fullname, rgb_name, font=font, anchor="lt", **border)
-    else:
-        draw.text(((sum_borders.get("x") - xtext) / 2, (sum_borders.get("y") - ytext) / 2), fullname, rgb_name, font=font, anchor="lt")
-
+    draw.text(((sum_borders.get("x") - xtext) / 2, (sum_borders.get("y") - ytext) / 2), fullname, fill=rgb_name, font=font, anchor="lt", **border)
     bg_img.save(temp_dir + 'edited_' + filename)
     return filename
 
@@ -80,7 +76,9 @@ def process_json_data(data, data_type=''):
         ellipse = [(photo_measures.get("padding"),) * 2,
                    (photo_measures.get("side_size") - photo_measures.get("padding"),) * 2]
         tl_corner = tuple(photo_measures.get("tl_corner"))
-        return square_size, ellipse, tl_corner
+        gaussian_blur_radius = photo_measures.get("gaussian_blur_radius")
+
+        return square_size, ellipse, tl_corner, gaussian_blur_radius
     elif data_type == 'name':
         name_measures = data.get("name")
         sum_borders = {}
@@ -89,7 +87,10 @@ def process_json_data(data, data_type=''):
             sum_borders.update({axis: name_measures.get(axis)[1] + name_measures.get(axis)[0]})
             max_size.update({axis: name_measures.get(axis)[1] - name_measures.get(axis)[0] - name_measures.get("padding")})
         rgb_name = tuple(name_measures.get("rgb"))
-        border = name_measures.get("border", None)
-
+        border = name_measures.get("border")
+        if border:
+            border.update({'stroke_fill': tuple(border.get('stroke_fill'))})
+        else:
+            border = {}
         return max_size, sum_borders, rgb_name, border
     return None

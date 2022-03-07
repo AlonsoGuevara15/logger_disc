@@ -10,7 +10,7 @@ event_files_dir = "event_files/"
 class BotUtils:
     def __init__(self, client):
         self.copa_channels, self.staff_roles, self.team_roles, self.copa_server = get_server_data(client)
-        with open(event_files_dir + 'utils_data.json') as json_file:
+        with open(event_files_dir + 'utils_data.json', encoding="utf-8") as json_file:
             data = json.load(json_file)
             self.filenames = data.get("filenames")
             self.welcome_message_text = data.get("welcome_message_text")

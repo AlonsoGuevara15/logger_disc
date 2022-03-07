@@ -1,26 +1,35 @@
 {
   "name": {
     "x": [
-      226,
-      1012
+      344,
+      935
     ],
     "y": [
-      373,
-      477
+      261,
+      375
     ],
-    "padding": 36,
+    "padding": 30,
     "rgb": [
-      31,
-      47,
-      81
-    ]
+      9,
+      177,
+      207
+    ],
+    "border": {
+      "stroke_width": 1,
+      "stroke_fill": [
+        253,
+        36,
+        124
+      ]
+    }
   },
   "photo": {
-    "side_size": 340,
-    "padding": 20,
+    "side_size": 255,
+    "padding": 10,
+    "gaussian_blur_radius": 3,
     "tl_corner": [
-      420,
-      40
+      511,
+      3
     ]
   }
 }
