@@ -9,8 +9,6 @@ intents = discord.Intents.default()
 intents.members = True
 client = commands.Bot(command_prefix='-', intents=intents)
 
-DEBUG = True
-
 
 @client.event
 async def on_ready():
@@ -79,9 +77,7 @@ async def join(ctx, *, arg):
         if len(ctx.author.roles) > 1:
             new_role = ctx.author.roles[1]
             for member in ctx.message.mentions:
-                if len(member.roles) == 1 or str(
-                        member.roles[1].id) not in list(
-                            bot_utils.team_roles.keys()):
+                if len(member.roles) == 1 or str(member.roles[1].id) not in list(bot_utils.team_roles.keys()):
                     await member.add_roles(new_role)
                     role_data = bot_utils.team_roles.get(
                         str(new_role.id), None)
@@ -97,7 +93,7 @@ async def join(ctx, *, arg):
                         colour=discord.Colour(0x607D8B),
                         description=
                         ":warning: **{}** ya pertenece al equipo **{}**".
-                        format(member.display_name, member.roles[1].name))
+                            format(member.display_name, member.roles[1].name))
                     await ctx.send(embed=embed)
 
 
@@ -173,7 +169,7 @@ async def cast(ctx, arg):
 #     await member.send(embed=embed)
 #     await copa_channels.get('bots').send(embed=embed)
 
-if not DEBUG:
+if os.getenv('DEPLOY', None):
     from keep_alive import keep_alive
     keep_alive()
 
