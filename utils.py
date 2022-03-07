@@ -30,7 +30,8 @@ class BotUtils:
         for f in os.listdir(temp_dir):
             os.remove(os.path.join(temp_dir, f))
 
-    async def send_team_embed(self, member, role_data):
+    async def send_team_embed(self, member, new_role_id):
+        role_data = self.team_roles.get(str(new_role_id), None)
         embed = discord.Embed(colour=discord.Colour(role_data.get('colour')), description="Bienvenid@ a **{}**!".format(
             role_data.get('nombre')))
         embed.set_thumbnail(url=str(member.avatar_url))

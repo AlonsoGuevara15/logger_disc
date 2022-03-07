@@ -39,7 +39,7 @@ async def build_welcome_image(member):
     bg_img.paste(avatar_img, tl_corner_photo, mask_im.filter(ImageFilter.GaussianBlur(gaussian_blur_radius)))
     draw = ImageDraw.Draw(bg_img)
 
-    max_size, sum_borders, rgb_name, border = process_json_data(data, data_type='name')
+    max_size, sum_borders, text_colors = process_json_data(data, data_type='name')
 
     fontsize = 20
     # font = ImageFont.truetype(<font-file>, <font-size>)
@@ -64,7 +64,10 @@ async def build_welcome_image(member):
     (xtext, ytext) = (bounds[2] - bounds[0], bounds[3] - bounds[1])
 
     # draw.text((x, y),"Sample Text",(r,g,b))
-    draw.text(((sum_borders.get("x") - xtext) / 2, (sum_borders.get("y") - ytext) / 2), fullname, fill=rgb_name, font=font, anchor="lt", **border)
+    for c in text_colors:
+        print(c.get("x_offset"))
+        print(c.get("border"))
+        draw.text((((sum_borders.get("x") - xtext) / 2) + c.get("x_offset"), (sum_borders.get("y") - ytext) / 2), fullname, fill=c.get("rgb"), font=font, anchor="lt", **c.get("border"))
     bg_img.save(temp_dir + 'edited_' + filename)
     return filename
 
@@ -86,11 +89,17 @@ def process_json_data(data, data_type=''):
         for axis in ["x", "y"]:
             sum_borders.update({axis: name_measures.get(axis)[1] + name_measures.get(axis)[0]})
             max_size.update({axis: name_measures.get(axis)[1] - name_measures.get(axis)[0] - name_measures.get("padding")})
-        rgb_name = tuple(name_measures.get("rgb"))
-        border = name_measures.get("border")
-        if border:
-            border.update({'stroke_fill': tuple(border.get('stroke_fill'))})
-        else:
-            border = {}
-        return max_size, sum_borders, rgb_name, border
+        colors = name_measures.get("colors")
+        for idx, item in enumerate(colors):
+            item.update({"rgb": tuple(item.get("rgb"))})
+            border = item.get("border")
+            if border:
+                border.update({'stroke_fill': tuple(border.get('stroke_fill'))})
+            else:
+                border = {}
+            item.update({"border": border})
+            colors[idx] = item
+
+        text_colors = sorted(colors, key=lambda i: i['z_index'])
+        return max_size, sum_borders, text_colors
     return None

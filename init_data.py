@@ -13,7 +13,7 @@ roles_id = {
 
 other_channels_id = {
     'general_channel': 944807983286726701,
-    'prueba_channel': 950118395876094012,
+    'prueba_channel': 950392223864864898,
 }
 
 teams_init = [
