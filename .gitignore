@@ -16,7 +16,7 @@ gen
 node_modules/
 dist/
 __pycache__/
-
+poetry.lock
 venv/*
 media/*
 
