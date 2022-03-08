@@ -4,5 +4,9 @@
     "retos": "Retos_Copa_Telecom_Bicentenario.xlsx",
     "horario": "horario_copa.jpg"
   },
-  "welcome_message_text": "Bienvenid@ {user_mention} a la :bat: **Copa Telecom 2021 - Edición Bicentenario** :flag_pe:. Recuerda leerte las {rules_mention} antes de empezar, es muy importante. Diviertete! :cowboy:"
+  "welcome_message_text": "Bienvenid@ {user_mention} a la :bat: **Copa Telecom 2021 - Edición Bicentenario** :flag_pe:. Recuerda leerte las {rules_mention} antes de empezar, es muy importante. Diviertete! :cowboy:",
+  "embed_colors": {
+    "rules": "0x607D8B",
+    "retos": "0x607D8B"
+  }
 }
