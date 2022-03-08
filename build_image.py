@@ -1,11 +1,14 @@
+import PIL.Image
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 import os
 import json
 
 welcome_dir = 'welcome_image/'
 base_img_filename = 'base_img.png'
-mask_circle_filename = 'mask_circle.jpg'
+mask_circle_filename = 'mask_circle.png'
 temp_dir = 'temp/'
+bg_color_filename = 'bg_{}.png'
+bg_color_dir = welcome_dir + 'bg_colors/'
 
 
 async def build_welcome_image(member):
@@ -20,11 +23,11 @@ async def build_welcome_image(member):
 
     await member.avatar_url.save(temp_dir + filename)
 
-    square_size, ellipse, tl_corner_photo, gaussian_blur_radius = process_json_data(data, data_type='photo')
+    square_size, ellipse, tl_corner_photo, gaussian_blur_radius, bg_colors = process_json_data(data, data_type='photo')
 
     bg_img = Image.open(welcome_dir + base_img_filename).copy()
     resize_size = square_size
-    avatar_img = Image.open(temp_dir + filename).resize(resize_size)
+    avatar_img = Image.open(temp_dir + filename).resize(resize_size, PIL.Image.ANTIALIAS)
 
     full_mask_circle_filename = welcome_dir + mask_circle_filename
     if not os.path.exists(full_mask_circle_filename) or not os.getenv('DEPLOY', None):
@@ -32,9 +35,24 @@ async def build_welcome_image(member):
         draw = ImageDraw.Draw(mask_im)
         draw.ellipse((ellipse[0], ellipse[1]),
                      fill=255)
-        mask_im.save(full_mask_circle_filename, quality=100)
+        mask_im.save(full_mask_circle_filename, quality=100, subsampling=0)
 
     mask_im = Image.open(full_mask_circle_filename)
+
+    for bc in bg_colors:
+        str_rgb = ''.join(str(i) for i in bc.get('rgb'))
+
+        full_bg_filename = bg_color_dir + bg_color_filename.format(str_rgb)
+        if not os.path.exists(bg_color_dir):
+            os.makedirs(bg_color_dir)
+
+        if not os.path.exists(full_bg_filename) or not os.getenv('DEPLOY', None):
+            bg_color = Image.new("RGB", resize_size, bc.get('rgb'))
+            bg_color.save(full_bg_filename, quality=100, subsampling=0)
+
+        bg_color = Image.open(full_bg_filename)
+
+        bg_img.paste(bg_color, (tl_corner_photo[0] + bc.get('x_offset'), tl_corner_photo[1]), mask_im.filter(ImageFilter.GaussianBlur(gaussian_blur_radius)))
 
     bg_img.paste(avatar_img, tl_corner_photo, mask_im.filter(ImageFilter.GaussianBlur(gaussian_blur_radius)))
     draw = ImageDraw.Draw(bg_img)
@@ -65,10 +83,8 @@ async def build_welcome_image(member):
 
     # draw.text((x, y),"Sample Text",(r,g,b))
     for c in text_colors:
-        print(c.get("x_offset"))
-        print(c.get("border"))
         draw.text((((sum_borders.get("x") - xtext) / 2) + c.get("x_offset"), (sum_borders.get("y") - ytext) / 2), fullname, fill=c.get("rgb"), font=font, anchor="lt", **c.get("border"))
-    bg_img.save(temp_dir + 'edited_' + filename)
+    bg_img.save(temp_dir + 'edited_' + filename, quality=100, subsampling=0)
     return filename
 
 
@@ -81,7 +97,12 @@ def process_json_data(data, data_type=''):
         tl_corner = tuple(photo_measures.get("tl_corner"))
         gaussian_blur_radius = photo_measures.get("gaussian_blur_radius")
 
-        return square_size, ellipse, tl_corner, gaussian_blur_radius
+        colors = photo_measures.get("bg_colors", [])
+        for idx, item in enumerate(colors):
+            item.update({"rgb": tuple(item.get("rgb"))})
+            colors[idx] = item
+        bg_colors = sorted(colors, key=lambda i: i['z_index'])
+        return square_size, ellipse, tl_corner, gaussian_blur_radius, bg_colors
     elif data_type == 'name':
         name_measures = data.get("name")
         sum_borders = {}

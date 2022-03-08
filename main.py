@@ -48,6 +48,7 @@ async def on_ready():
                 for rol in after.roles:
                     if str(rol.id) in list(bot_utils.team_roles.keys()) and rol != new_role:  # elimina los roles de los otros equipos
                         await after.remove_roles(rol)
+                print("send_team_embed")
                 await bot_utils.send_team_embed(after, new_role.id)
             if new_role == bot_utils.staff_roles.get('support'):  # no se puede asignar el rol de soporte
                 await after.remove_roles(new_role)
@@ -115,6 +116,11 @@ async def on_ready():
             await bot_utils.send_retos(channel_name='general', tag_everyone=True)
         else:
             await ctx.send("Argumentos de cast: ```-cast horario/roles/retos```")
+
+    @client.command(brief='clean message history')
+    @commands.check(is_support)
+    async def clean(ctx):
+        await ctx.channel.purge(limit=100)
 
     # @client.command()
     # @commands.check(is_support)

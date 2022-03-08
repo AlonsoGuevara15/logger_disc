@@ -42,10 +42,30 @@
   "photo": {
     "side_size": 255,
     "padding": 10,
-    "gaussian_blur_radius": 3,
+    "gaussian_blur_radius": 0,
     "tl_corner": [
       511,
       3
+    ],
+    "bg_colors": [
+      {
+        "rgb": [
+          67,
+          220,
+          254
+        ],
+        "x_offset": -5,
+        "z_index": 0
+      },
+      {
+        "rgb": [
+          162,
+          44,
+          184
+        ],
+        "x_offset": 5,
+        "z_index": 1
+      }
     ]
   }
 }
