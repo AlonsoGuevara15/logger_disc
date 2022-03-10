@@ -1,3 +1,5 @@
+from datetime import datetime, timezone, timedelta
+
 import discord
 import os
 import json
@@ -15,6 +17,7 @@ class BotUtils:
             self.filenames = data.get("filenames")
             self.welcome_message_text = data.get("welcome_message_text")
             self.embed_colors = {k: int(hex_string, 16) for k, hex_string in data.get("embed_colors").items()}
+            self.retos_timestamp = data.get("retos_timestamp_seconds", None)
 
     async def send_welcome_message(self, member, cast=False):
         filename = await build_welcome_image(member)
@@ -39,7 +42,7 @@ class BotUtils:
         channel = role_data.get('channel')
         embed.add_field(name=":bust_in_silhouette: Miembro:", value="{}".format(member.mention), inline=False)
         embed.add_field(name=":speech_left: Chat:", value="{}".format(channel.mention), inline=False)
-        embed.set_author(name=member.display_name.upper(), icon_url=role_data.get('img'))
+        embed.set_author(name=member.name, icon_url=role_data.get('img'))
         embed.set_footer(text=self.copa_server.name, icon_url=self.copa_server.icon_url)
         await channel.send(embed=embed)
         await member.send(embed=embed)
@@ -60,7 +63,8 @@ class BotUtils:
             await channel.send("@everyone", embed=embed)
         else:
             await channel.send(embed=embed)
-        await channel.send(file=discord.File(event_files_dir + self.filenames.get("horario")))
+        for horario in self.filenames.get("horario"):
+            await channel.send(file=discord.File(event_files_dir + horario))
 
     async def send_role_indication(self, channel_name='', tag_everyone=False):
         embed = discord.Embed(
@@ -81,6 +85,7 @@ class BotUtils:
             value=
             ":warning: Solo los jueces pueden revertir la asignación de un rol",
             inline=False)
+        embed.set_footer(text=self.copa_server.name, icon_url=self.copa_server.icon_url)
         channel = self.copa_channels.get(channel_name)
         if tag_everyone:
             await channel.send("@everyone", embed=embed)
@@ -91,5 +96,22 @@ class BotUtils:
         channel = self.copa_channels.get(channel_name)
         if tag_everyone:
             await channel.send("@everyone")
-        await channel.send(embed=discord.Embed(colour=discord.Colour(self.embed_colors.get('retos')), title=":beers: EXCEL DE RETOS"))
-        await channel.send(file=discord.File(event_files_dir + self.filenames.get("retos")))
+        if self.retos_timestamp and datetime.now(timezone.utc).timestamp() < self.retos_timestamp:
+            print(timedelta(seconds=self.retos_timestamp - datetime.now(timezone.utc).timestamp()))
+            embed = discord.Embed(
+                colour=discord.Colour(self.embed_colors.get('retos')),
+                title=":beers: EXCEL DE RETOS",
+                description="Aún no están disponibles los retos.")
+            embed.add_field(
+                name="Los retos empiezan:",
+                value="<t:{timestamp}:F>".format(timestamp=self.retos_timestamp),
+                inline=True)
+            embed.add_field(
+                name="_ _",
+                value="<t:{timestamp}:R>".format(timestamp=self.retos_timestamp),
+                inline=True)
+            embed.set_footer(text=self.copa_server.name, icon_url=self.copa_server.icon_url)
+            await channel.send(embed=embed)
+        else:
+            await channel.send(embed=discord.Embed(colour=discord.Colour(self.embed_colors.get('retos')), title=":beers: EXCEL DE RETOS"))
+            await channel.send(file=discord.File(event_files_dir + self.filenames.get("retos")))

@@ -90,7 +90,7 @@ async def on_ready():
     async def update_info(ctx, arg):
         if arg == "rules":
             ind_channel = bot_utils.copa_channels.get('rules')
-            await ind_channel.purge(limit=5)
+            await ind_channel.purge(limit=100)
 
             await bot_utils.send_rules(channel_name='rules')
 
@@ -98,7 +98,7 @@ async def on_ready():
             await bot_utils.send_role_indication(channel_name='rules')
         elif arg == "retos":
             retos_channel = bot_utils.copa_channels.get('retos')
-            await retos_channel.purge(limit=5)
+            await retos_channel.purge(limit=100)
             await bot_utils.send_retos(channel_name='retos')
         else:
             await ctx.send(
