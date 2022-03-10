@@ -97,7 +97,6 @@ class BotUtils:
         if tag_everyone:
             await channel.send("@everyone")
         if self.retos_timestamp and datetime.now(timezone.utc).timestamp() < self.retos_timestamp:
-            print(timedelta(seconds=self.retos_timestamp - datetime.now(timezone.utc).timestamp()))
             embed = discord.Embed(
                 colour=discord.Colour(self.embed_colors.get('retos')),
                 title=":beers: EXCEL DE RETOS",
