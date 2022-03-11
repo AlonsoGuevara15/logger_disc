@@ -18,32 +18,24 @@ other_channels_id = {
 
 teams_init = [
     {
-        'role_id': '944813737360125962',
+        'role_id': 944813737360125962,
         'channel_id': 944810001405472789,
-        'colour': 0xAD1457,
         'img': 'https://media.discordapp.net/attachments/883558396241018912/951497644163862598/t1.png',
-        'nombre': 'Angurrientos',
     },
     {
-        'role_id': '944814018948898826',
+        'role_id': 944814018948898826,
         'channel_id': 944810039695269929,
-        'colour': 0x0a0a0a,
         'img': 'https://media.discordapp.net/attachments/883558396241018912/951497655136178176/t2.png',
-        'nombre': 'Shockers',
     },
     {
-        'role_id': '944814080219287633',
+        'role_id': 944814080219287633,
         'channel_id': 944810065918034000,
-        'colour': 0xffffff,
         'img': 'https://media.discordapp.net/attachments/883558396241018912/951497661515710584/t3.png',
-        'nombre': 'TeleBats',
     },
     {
-        'role_id': '944814113610145792',
+        'role_id': 944814113610145792,
         'channel_id': 944810088248537088,
-        'colour': 0x206694,
         'img': 'https://media.discordapp.net/attachments/883558396241018912/951497672127311902/t4.png',
-        'nombre': 'CuchitoArmy',
     },
 ]
 
@@ -63,12 +55,13 @@ def get_server_data(client):
         'juez': get(copa_server.roles, id=roles_id.get('juez_role')),
         'support': get(copa_server.roles, id=roles_id.get('support_role')),
     }
-    # await general_channel.purge(limit=100)
+
     team_roles = {}
     for team in teams_init:
         team_roles.update({
-            team.get('role_id'): {
+            str(team.get('role_id')): {
                 'channel': client.get_channel(team.get('channel_id')),
+                'role': get(copa_server.roles, id=team.get('role_id')),
                 **team
             }
         })

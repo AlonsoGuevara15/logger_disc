@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 import discord
 import os
@@ -11,13 +11,14 @@ event_files_dir = "event_files/"
 
 class BotUtils:
     def __init__(self, client):
-        self.copa_channels, self.staff_roles, self.team_roles, self.copa_server = get_server_data(client)
-        with open(event_files_dir + 'utils_data.json', encoding="utf-8") as json_file:
-            data = json.load(json_file)
-            self.filenames = data.get("filenames")
-            self.welcome_message_text = data.get("welcome_message_text")
-            self.embed_colors = {k: int(hex_string, 16) for k, hex_string in data.get("embed_colors").items()}
-            self.retos_timestamp = data.get("retos_timestamp_seconds", None)
+        if client:
+            self.copa_channels, self.staff_roles, self.team_roles, self.copa_server = get_server_data(client)
+            with open(event_files_dir + 'utils_data.json', encoding="utf-8") as json_file:
+                data = json.load(json_file)
+                self.filenames = data.get("filenames")
+                self.welcome_message_text = data.get("welcome_message_text")
+                self.embed_colors = {k: int(hex_string, 16) for k, hex_string in data.get("embed_colors").items()}
+                self.retos_timestamp = data.get("retos_timestamp_seconds", None)
 
     async def send_welcome_message(self, member, cast=False):
         filename = await build_welcome_image(member)
@@ -36,8 +37,8 @@ class BotUtils:
 
     async def send_team_embed(self, member, new_role_id):
         role_data = self.team_roles.get(str(new_role_id), None)
-        embed = discord.Embed(colour=discord.Colour(role_data.get('colour')), description="Bienvenid@ a **{}**!".format(
-            role_data.get('nombre')))
+        embed = discord.Embed(colour=role_data.get('role').colour, description="Bienvenid@ a **{}**!".format(
+            role_data.get('role').name))
         embed.set_thumbnail(url=str(member.avatar_url))
         channel = role_data.get('channel')
         embed.add_field(name=":bust_in_silhouette: Miembro:", value="{}".format(member.mention), inline=False)
@@ -70,20 +71,18 @@ class BotUtils:
         embed = discord.Embed(
             colour=discord.Colour(self.embed_colors.get('rules')),
             title=":bat: ROLES: INDICACIONES",
-            description=
-            "Existen dos maneras de ser asignado al rol de tu equipo:")
+            description="Existen dos maneras de ser asignado al rol de tu equipo:")
         embed.add_field(name="1. :judge:",
                         value="Un JUEZ les asigna manualmente",
                         inline=False)
         embed.add_field(
             name="2. :busts_in_silhouette:",
-            value="Uno de sus compañeros ya asignados puede unirlos en {}, **etiquetandolos** con el siguiente comando: ```-join @usuarioDiscord1 [@usuarioDiscord2 ...]```"
+            value="Uno de sus compañeros ya asignados puede unirlos en {}, **etiquetándolos** con el siguiente comando: ```-join @usuario1 [@usuario2 ...]```"
                 .format(self.copa_channels.get('general').mention),
             inline=False)
         embed.add_field(
             name="_ _",
-            value=
-            ":warning: Solo los jueces pueden revertir la asignación de un rol",
+            value="> :warning: `Solo los jueces pueden revertir la asignación de un rol`",
             inline=False)
         embed.set_footer(text=self.copa_server.name, icon_url=self.copa_server.icon_url)
         channel = self.copa_channels.get(channel_name)
