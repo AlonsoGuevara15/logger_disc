@@ -60,7 +60,7 @@ async def on_message(message):
 def is_support(ctx):
     role_permission = bot_utils.staff_roles.get('support') in ctx.author.roles
     channel_permission = bot_utils.copa_channels.get('prueba') == ctx.channel
-    return role_permission and channel_permission
+    return role_permission
 
 
 @client.command()
@@ -116,12 +116,12 @@ async def join(ctx, *, arg):
                     colour=role_data.get('role').colour,
                     description="{} fue unid@ al equipo **{}**".format(member.mention, role_data.get('role').name))
                 embed.set_author(icon_url=role_data.get('img'), name="NUEVO MIEMBRO")
-                await ctx.send(embed=embed)
+                await ctx.reply(embed=embed)
             else:
                 embed = discord.Embed(
                     colour=member_team_role.colour,
                     description=":warning: **{}** ya pertenece al equipo **{}**".format(member.display_name, member_team_role.name))
-                await ctx.send(embed=embed)
+                await ctx.reply(embed=embed)
 
 
 @client.command(brief='rules/retos')
@@ -170,7 +170,7 @@ async def status(ctx, arg):
     global game_activity
     game_activity = discord.Game(name=arg)
     embed = discord.Embed(description="status changed to Playing **{}**".format(arg))
-    await ctx.send(embed=embed)
+    await ctx.reply(embed=embed)
 
 
 @client.command(brief='logout telito')
